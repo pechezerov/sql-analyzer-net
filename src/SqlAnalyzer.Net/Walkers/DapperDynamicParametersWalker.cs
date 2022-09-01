@@ -23,29 +23,21 @@ namespace SqlAnalyzer.Net.Walkers
         public override void VisitVariableDeclarator(VariableDeclaratorSyntax node)
         {
             if (node.Identifier.ValueText != _variableName)
-            {
                 return;
-            }
 
             var constructors = node.DescendantNodes()
                 .OfType<ObjectCreationExpressionSyntax>()
                 .ToList();
 
             if (constructors.Count != 1)
-            {
                 return;
-            }
 
             var constructor = constructors.FirstOrDefault();
             if (constructor?.ArgumentList == null)
-            {
                 return;
-            }
 
             if (constructor.ArgumentList.Arguments.Count == 0)
-            {
                 return;
-            }
 
             if (constructor.ArgumentList.Arguments[0].Expression is AnonymousObjectCreationExpressionSyntax objectCreationExpressionSyntax)
             {
@@ -67,14 +59,10 @@ namespace SqlAnalyzer.Net.Walkers
                 .ToList();
 
             if (identifierNames.Count < 2)
-            {
                 return;
-            }
 
             if (identifierNames[0].Identifier.Text != _variableName)
-            {
                 return;
-            }
 
             if (identifierNames[1].Identifier.Text != "Add")
             {
@@ -84,9 +72,7 @@ namespace SqlAnalyzer.Net.Walkers
             }
 
             if (node.ArgumentList.Arguments.Count < 1)
-            {
                 return;
-            }
 
             if (!(node.ArgumentList.Arguments[0].Expression is LiteralExpressionSyntax literalExpression))
             {

@@ -12,6 +12,11 @@ namespace SqlAnalyzer.Net.Extensions
             return symbol.Type.Equals(semanticModel.GetDapperDynamicParametersSymbol());
         }
 
+        public static bool IsDapperCommandDefinition(this ILocalSymbol symbol, SemanticModel semanticModel)
+        {
+            return symbol.Type.Equals(semanticModel.GetDapperCommandDefinitionSymbol());
+        }
+
         public static SyntaxNode GetVariableScope(this ILocalSymbol symbol)
         {
             if (symbol.DeclaringSyntaxReferences.Length != 1)

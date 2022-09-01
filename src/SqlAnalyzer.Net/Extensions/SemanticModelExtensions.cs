@@ -14,6 +14,11 @@ namespace SqlAnalyzer.Net.Extensions
             return semanticModel.Compilation.GetTypeByMetadataName("Dapper.DynamicParameters");
         }
 
+        public static INamedTypeSymbol GetDapperCommandDefinitionSymbol(this SemanticModel semanticModel)
+        {
+            return semanticModel.Compilation.GetTypeByMetadataName("Dapper.CommandDefinition");
+        }
+
         public static INamedTypeSymbol GetLinqEnumerableSymbol(this SemanticModel semanticModel)
         {
             return semanticModel.Compilation.GetTypeByMetadataName("System.Linq.Enumerable");

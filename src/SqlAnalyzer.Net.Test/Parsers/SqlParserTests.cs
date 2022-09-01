@@ -56,6 +56,16 @@ namespace SqlAnalyzer.Net.Test.Parsers
 
             Assert.AreEqual(1, parameters.Count);
             Assert.AreEqual("name", parameters.First());
+
+            var sql2 =
+                @"SELECT id, @@IDENTITY 
+                FROM dbo.table
+                WHERE name = :name;";
+
+            var parameters2 = SqlParser.FindParameters(sql2);
+
+            Assert.AreEqual(1, parameters2.Count);
+            Assert.AreEqual("name", parameters2.First());
         }
 
         [TestMethod]

@@ -25,40 +25,42 @@ namespace SqlAnalyzer.Net
             context.RegisterSyntaxNodeAction(AnalyzeInvocationExpression, SyntaxKind.InvocationExpression);
         }
 
-        private static ICollection<string> FindParameters(SyntaxNodeAnalysisContext context, ArgumentSyntax argument)
+        private static (string, ICollection<string>)? FindParameters(SyntaxNodeAnalysisContext context, ArgumentSyntax argument)
         {
             var symbol = context.SemanticModel.GetSymbolInfo(argument.Expression).Symbol;
             if (symbol == null)
-            {
-                return null;
-            }
+                return (null, null);
 
             if (symbol is IMethodSymbol methodSymbol)
-            {
-                return methodSymbol.Parameters.Select(p => p.Name).ToList();
-            }
+                return (null, methodSymbol.Parameters.Select(p => p.Name).ToList());
 
-            if (symbol is ILocalSymbol localSymbol && localSymbol.IsDapperDynamicParameter(context.SemanticModel))
+            if (symbol is ILocalSymbol localSymbol)
             {
                 var methodDeclarationSyntax = argument
-                    .Expression
-                    .FindMethodDeclaration();
+                        .Expression
+                        .FindMethodDeclaration();
                 if (methodDeclarationSyntax == null)
-                {
                     return null;
-                }
 
-                var dapperAddInvocationExpressionWalker = new DapperDynamicParametersWalker(symbol.Name);
-                dapperAddInvocationExpressionWalker.Visit(methodDeclarationSyntax.Body);
-                if (!dapperAddInvocationExpressionWalker.IsAllParametersStatic)
+                if (localSymbol.IsDapperCommandDefinition(context.SemanticModel))
                 {
-                    return null;
-                }
+                    var dapperAddInvocationExpressionWalker = new DapperCommandDefinitionWalker(symbol.Name);
+                    dapperAddInvocationExpressionWalker.Visit(methodDeclarationSyntax.Body);
+                    return (dapperAddInvocationExpressionWalker.Sql, dapperAddInvocationExpressionWalker.SqlParameters);
 
-                return dapperAddInvocationExpressionWalker.SqlParameters;
+                }
+                else if (localSymbol.IsDapperDynamicParameter(context.SemanticModel))
+                {
+                    var dapperAddInvocationExpressionWalker = new DapperDynamicParametersWalker(symbol.Name);
+                    dapperAddInvocationExpressionWalker.Visit(methodDeclarationSyntax.Body);
+                    if (!dapperAddInvocationExpressionWalker.IsAllParametersStatic)
+                        return null;
+
+                    return (null, dapperAddInvocationExpressionWalker.SqlParameters);
+                }
             }
 
-            return null;
+            return (null, null);
         }
 
         private void AnalyzeInvocationExpression(SyntaxNodeAnalysisContext context)
@@ -97,10 +99,14 @@ namespace SqlAnalyzer.Net
                     continue;
                 }
 
-                if (string.Equals(parameter.Name, "param"))
-                {
-                    sharpParameters = FindParameters(context, argument);
-                }
+                (string sql, ICollection<string> param)? p = null;
+                if (string.Equals(parameter.Name, "param") || string.Equals(parameter.Name, "command"))
+                    p = FindParameters(context, argument);
+
+                if (p?.sql != null)
+                    sqlText = p?.sql;
+                if (p?.param != null)
+                    sharpParameters = p?.param;
             }
 
             ParametersMatchingRule.TryReportDiagnostics(sqlText, sharpParameters, invocationExpressionSyntax.GetLocation(), context, Orm.Dapper);

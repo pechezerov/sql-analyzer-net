@@ -39,6 +39,43 @@ namespace SqlAnalyzer.Net.Test
         }
 
         [TestMethod]
+        public void InlineSqlUnmatchedParametersWithCommandDefinition_AnalyzerTriggered()
+        {
+            var code = ReadTestData("InlineSqlUnmatchedParametersWithCommandDefinition.cs");
+
+            var expected = new DiagnosticResult
+            {
+                Id = ParametersMatchingRule.DiagnosticId,
+                Message = string.Format(
+                                       ParametersMatchingRule.MessageFormatCsharpArgumentNotFound,
+                                       "not_found"),
+                Severity = DiagnosticSeverity.Warning,
+                Locations = new[] { new DiagnosticResultLocation("Test0.cs", 17, 13) }
+            };
+
+            VerifyCSharpDiagnostic(code, expected);
+        }
+
+
+        [TestMethod]
+        public void InlineSqlUnmatchedParametersWithConstructedCommandDefinition_AnalyzerTriggered()
+        {
+            var code = ReadTestData("InlineSqlUnmatchedParametersWithConstructedCommandDefinition.cs");
+
+            var expected = new DiagnosticResult
+            {
+                Id = ParametersMatchingRule.DiagnosticId,
+                Message = string.Format(
+                                       ParametersMatchingRule.MessageFormatCsharpArgumentNotFound,
+                                       "not_found"),
+                Severity = DiagnosticSeverity.Warning,
+                Locations = new[] { new DiagnosticResultLocation("Test0.cs", 17, 13) }
+            };
+
+            VerifyCSharpDiagnostic(code, expected);
+        }
+
+        [TestMethod]
         public void InlineSqlUnmatchedParametersWithLiterals_AnalyzerTriggered()
         {
             var code = ReadTestData("InlineSqlLiteralParameters.cs");
